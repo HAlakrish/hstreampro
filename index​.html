@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streamlabs Authentication</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid white;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .success {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success">✓</div>
+        <h1>Authentication Successful!</h1>
+        <div class="spinner"></div>
+        <p>Redirecting back to HStream Pro...</p>
+        <p style="font-size: 0.9em; opacity: 0.8; margin-top: 20px;">
+            If you're not redirected automatically, please close this window and return to the app.
+        </p>
+    </div>
+
+    <script>
+        // Extract the authorization code from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const error = urlParams.get('error');
+
+        if (error) {
+            document.querySelector('.container').innerHTML = `
+                <div style="font-size: 48px; margin-bottom: 10px;">✗</div>
+                <h1>Authentication Failed</h1>
+                <p>Error: ${error}</p>
+                <p>Please close this window and try again.</p>
+            `;
+        } else if (code) {
+            // Redirect to the app's custom URL scheme with the authorization code
+            const appUrl = `hstreampro://auth/callback?code=${encodeURIComponent(code)}`;
+
+            // Try to open the app
+            window.location.href = appUrl;
+
+            // Fallback: If the app doesn't open after 3 seconds, show instructions
+            setTimeout(() => {
+                document.querySelector('p').innerHTML =
+                    'Please copy this code and paste it in the app if it didn\'t open automatically:<br><br>' +
+                    `<strong style="font-size: 1.2em; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px; display: inline-block; margin-top: 10px;">${code}</strong>`;
+            }, 3000);
+        } else {
+            document.querySelector('.container').innerHTML = `
+                <div style="font-size: 48px; margin-bottom: 10px;">✗</div>
+                <h1>Invalid Callback</h1>
+                <p>No authorization code found.</p>
+                <p>Please close this window and try again.</p>
+            `;
+        }
+    </script>
+</body>
+</html>
